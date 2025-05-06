@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Emilio Lehoucq">
+
+<title>Merging with world map data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="2_merging_with_world_map_files/libs/clipboard/clipboard.min.js"></script>
+<script src="2_merging_with_world_map_files/libs/quarto-html/quarto.js"></script>
+<script src="2_merging_with_world_map_files/libs/quarto-html/popper.min.js"></script>
+<script src="2_merging_with_world_map_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="2_merging_with_world_map_files/libs/quarto-html/anchor.min.js"></script>
+<link href="2_merging_with_world_map_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="2_merging_with_world_map_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="2_merging_with_world_map_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="2_merging_with_world_map_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="2_merging_with_world_map_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Merging with world map data</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Emilio Lehoucq </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="loading-libraries" class="level1">
+<h1>Loading libraries</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(maps)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'maps'
+
+The following object is masked from 'package:purrr':
+
+    map</code></pre>
+</div>
+</div>
+</section>
+<section id="reading-the-clean-data" class="level1">
+<h1>Reading the clean data</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"../data/un_migrant_stock/processed/data_subset_us_reshaped.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="focus-only-on-2010-2015-and-2020" class="level2">
+<h2 class="anchored" data-anchor-id="focus-only-on-2010-2015-and-2020">Focus only on 2010, 2015, and 2020</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    index_destination_to_origin,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    region_development_group_country_or_area_of_destination_destination_to_origin,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    location_code_of_destination,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">contains</span>(<span class="st">"2010"</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">contains</span>(<span class="st">"2015"</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">contains</span>(<span class="st">"2020"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="remove-rows-where-country-name-is-na" class="level2">
+<h2 class="anchored" data-anchor-id="remove-rows-where-country-name-is-na">Remove rows where country name is NA</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(region_development_group_country_or_area_of_destination_destination_to_origin))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="check-for-number-of-countries" class="level2">
+<h2 class="anchored" data-anchor-id="check-for-number-of-countries">Check for number of countries</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Mauritius*"                         "Uganda"                            
+  [3] "United Republic of Tanzania*"       "Zambia"                            
+  [5] "Cameroon"                           "Central African Republic"          
+  [7] "Congo"                              "Gabon"                             
+  [9] "Algeria"                            "Egypt"                             
+ [11] "Libya"                              "Morocco"                           
+ [13] "Tunisia"                            "Botswana"                          
+ [15] "Eswatini"                           "Lesotho"                           
+ [17] "Namibia"                            "South Africa"                      
+ [19] "Cabo Verde"                         "Ghana"                             
+ [21] "Guinea"                             "Guinea-Bissau"                     
+ [23] "Liberia"                            "Mali"                              
+ [25] "Mauritania"                         "Senegal"                           
+ [27] "Sierra Leone"                       "Togo"                              
+ [29] "Tajikistan"                         "China*"                            
+ [31] "China, Hong Kong SAR*"              "Dem. People's Republic of Korea"   
+ [33] "Japan"                              "Mongolia"                          
+ [35] "Republic of Korea"                  "Brunei Darussalam"                 
+ [37] "Cambodia"                           "Indonesia"                         
+ [39] "Philippines"                        "Singapore"                         
+ [41] "Thailand"                           "Timor-Leste"                       
+ [43] "Viet Nam"                           "Bangladesh"                        
+ [45] "Bhutan"                             "India"                             
+ [47] "Maldives"                           "Sri Lanka"                         
+ [49] "Bahrain"                            "Cyprus*"                           
+ [51] "Georgia*"                           "Israel"                            
+ [53] "Jordan"                             "Kuwait"                            
+ [55] "Lebanon"                            "Qatar"                             
+ [57] "State of Palestine*"                "Turkey"                            
+ [59] "United Arab Emirates"               "Belarus"                           
+ [61] "Bulgaria"                           "Czechia"                           
+ [63] "Hungary"                            "Poland"                            
+ [65] "Romania"                            "Russian Federation"                
+ [67] "Slovakia"                           "Ukraine*"                          
+ [69] "Denmark*"                           "Estonia"                           
+ [71] "Faroe Islands*"                     "Finland*"                          
+ [73] "Iceland"                            "Ireland"                           
+ [75] "Isle of Man*"                       "Latvia"                            
+ [77] "Lithuania"                          "Norway*"                           
+ [79] "Sweden"                             "United Kingdom*"                   
+ [81] "Albania"                            "Andorra"                           
+ [83] "Croatia"                            "Greece"                            
+ [85] "Italy"                              "Malta"                             
+ [87] "Montenegro"                         "Portugal"                          
+ [89] "Serbia*"                            "Slovenia"                          
+ [91] "Spain*"                             "Austria"                           
+ [93] "Belgium"                            "France*"                           
+ [95] "Germany"                            "Liechtenstein"                     
+ [97] "Luxembourg"                         "Netherlands*"                      
+ [99] "Switzerland"                        "Anguilla*"                         
+[101] "Antigua and Barbuda"                "Aruba*"                            
+[103] "Bahamas"                            "Barbados"                          
+[105] "Bonaire, Sint Eustatius and Saba*"  "British Virgin Islands*"           
+[107] "Cayman Islands*"                    "Cuba"                              
+[109] "Curaçao*"                           "Dominica"                          
+[111] "Dominican Republic"                 "Guadeloupe*"                       
+[113] "Haiti"                              "Jamaica"                           
+[115] "Montserrat*"                        "Puerto Rico*"                      
+[117] "Saint Lucia"                        "Saint Vincent and the Grenadines"  
+[119] "Sint Maarten (Dutch part)*"         "Trinidad and Tobago"               
+[121] "Turks and Caicos Islands*"          "United States Virgin Islands*"     
+[123] "Belize"                             "Costa Rica"                        
+[125] "El Salvador"                        "Guatemala"                         
+[127] "Honduras"                           "Mexico"                            
+[129] "Nicaragua"                          "Panama"                            
+[131] "Argentina"                          "Bolivia (Plurinational State of)"  
+[133] "Brazil"                             "Chile"                             
+[135] "Colombia"                           "Ecuador"                           
+[137] "Falkland Islands (Malvinas)*"       "Guyana"                            
+[139] "Paraguay"                           "Peru"                              
+[141] "Uruguay"                            "Venezuela (Bolivarian Republic of)"
+[143] "Bermuda*"                           "Canada"                            
+[145] "Greenland*"                         "Saint Pierre and Miquelon*"        
+[147] "Australia*"                         "New Zealand*"                      
+[149] "Melanesia"                          "Papua New Guinea"                  
+[151] "Solomon Islands"                    "Micronesia"                        
+[153] "Guam*"                              "Kiribati"                          
+[155] "Marshall Islands"                   "Micronesia (Fed. States of)"       
+[157] "Northern Mariana Islands*"          "Palau"                             
+[159] "Polynesia*"                         "American Samoa*"                   
+[161] "Cook Islands*"                      "French Polynesia*"                 
+[163] "Niue*"                              "Samoa"                             
+[165] "Tuvalu"                            </code></pre>
+</div>
+</div>
+</section>
+<section id="check-for-number-of-countries-accounting-for-missing-values" class="level2">
+<h2 class="anchored" data-anchor-id="check-for-number-of-countries-accounting-for-missing-values">Check for number of countries accounting for missing values</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">if_any</span>(<span class="fu">contains</span>(<span class="st">"stock"</span>), is.na)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Uganda"                             "United Republic of Tanzania*"      
+  [3] "Zambia"                             "Cameroon"                          
+  [5] "Algeria"                            "Egypt"                             
+  [7] "Libya"                              "Morocco"                           
+  [9] "Tunisia"                            "South Africa"                      
+ [11] "Cabo Verde"                         "Ghana"                             
+ [13] "Guinea"                             "Liberia"                           
+ [15] "Senegal"                            "Sierra Leone"                      
+ [17] "Tajikistan"                         "China*"                            
+ [19] "China, Hong Kong SAR*"              "Japan"                             
+ [21] "Republic of Korea"                  "Cambodia"                          
+ [23] "Indonesia"                          "Philippines"                       
+ [25] "Singapore"                          "Thailand"                          
+ [27] "Viet Nam"                           "Bangladesh"                        
+ [29] "India"                              "Sri Lanka"                         
+ [31] "Cyprus*"                            "Georgia*"                          
+ [33] "Israel"                             "Jordan"                            
+ [35] "Kuwait"                             "Lebanon"                           
+ [37] "State of Palestine*"                "Turkey"                            
+ [39] "United Arab Emirates"               "Belarus"                           
+ [41] "Bulgaria"                           "Czechia"                           
+ [43] "Hungary"                            "Poland"                            
+ [45] "Romania"                            "Russian Federation"                
+ [47] "Ukraine*"                           "Denmark*"                          
+ [49] "Estonia"                            "Finland*"                          
+ [51] "Iceland"                            "Ireland"                           
+ [53] "Latvia"                             "Lithuania"                         
+ [55] "Norway*"                            "Sweden"                            
+ [57] "United Kingdom*"                    "Albania"                           
+ [59] "Croatia"                            "Greece"                            
+ [61] "Italy"                              "Malta"                             
+ [63] "Portugal"                           "Serbia*"                           
+ [65] "Slovenia"                           "Spain*"                            
+ [67] "Austria"                            "Belgium"                           
+ [69] "France*"                            "Germany"                           
+ [71] "Luxembourg"                         "Netherlands*"                      
+ [73] "Switzerland"                        "Antigua and Barbuda"               
+ [75] "Aruba*"                             "Bahamas"                           
+ [77] "Barbados"                           "Cuba"                              
+ [79] "Dominica"                           "Dominican Republic"                
+ [81] "Haiti"                              "Jamaica"                           
+ [83] "Montserrat*"                        "Puerto Rico*"                      
+ [85] "Saint Lucia"                        "Saint Vincent and the Grenadines"  
+ [87] "Trinidad and Tobago"                "Belize"                            
+ [89] "Costa Rica"                         "El Salvador"                       
+ [91] "Guatemala"                          "Honduras"                          
+ [93] "Mexico"                             "Nicaragua"                         
+ [95] "Panama"                             "Argentina"                         
+ [97] "Bolivia (Plurinational State of)"   "Brazil"                            
+ [99] "Chile"                              "Colombia"                          
+[101] "Ecuador"                            "Guyana"                            
+[103] "Paraguay"                           "Peru"                              
+[105] "Uruguay"                            "Venezuela (Bolivarian Republic of)"
+[107] "Bermuda*"                           "Canada"                            
+[109] "Australia*"                         "New Zealand*"                      
+[111] "Melanesia"                          "Micronesia"                        
+[113] "Marshall Islands"                   "Micronesia (Fed. States of)"       
+[115] "Polynesia*"                         "Samoa"                             </code></pre>
+</div>
+</div>
+<p>116 = 165 (see above) - 49 (number of countries only in destination [see previous notebook–these are the countries where there are Americans, but for which there are no immigrants in the US])</p>
+</section>
+<section id="create-variables-for-maps" class="level2">
+<h2 class="anchored" data-anchor-id="create-variables-for-maps">Create variables for maps</h2>
+<section id="define-variables" class="level3">
+<h3 class="anchored" data-anchor-id="define-variables">Define variables</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_diff_stock =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_any</span>(<span class="fu">c</span>(diff_stock_2010, diff_stock_2015, diff_stock_2020), is.na),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rowMeans</span>(<span class="fu">select</span>(., diff_stock_2010, diff_stock_2015, diff_stock_2020))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_ratio_stock =</span> <span class="fu">if_else</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">if_any</span>(<span class="fu">c</span>(ratio_stock_2010, ratio_stock_2015, ratio_stock_2020), is.na),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="cn">NA</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rowMeans</span>(<span class="fu">select</span>(., ratio_stock_2010, ratio_stock_2015, ratio_stock_2020))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>p5 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(data<span class="sc">$</span>avg_ratio_stock, <span class="at">probs =</span> <span class="fl">0.05</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>p50 <span class="ot">&lt;-</span> <span class="fu">median</span>(data<span class="sc">$</span>avg_ratio_stock, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>p90 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(data<span class="sc">$</span>avg_ratio_stock, <span class="at">probs =</span> <span class="fl">0.9</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_net_pos =</span> <span class="fu">if_else</span>(avg_diff_stock <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">stock_2020_net_pos =</span> <span class="fu">ifelse</span>(diff_stock_2020 <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff_balance =</span> <span class="fu">case_when</span>(</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(diff_stock_2010) <span class="sc">|</span> <span class="fu">is.na</span>(diff_stock_2015) <span class="sc">|</span> <span class="fu">is.na</span>(diff_stock_2020) <span class="sc">~</span> <span class="cn">NA</span>,</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>      diff_stock_2010 <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> diff_stock_2015 <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> diff_stock_2020 <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Always more emigrants from the US"</span>,</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>      diff_stock_2010 <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> diff_stock_2015 <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;</span> diff_stock_2020 <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"Always more immigrants to the US"</span>,</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Balance varies by year"</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">stock_2020_category_three =</span> <span class="fu">case_when</span>(</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>      stock_2020_destination_to_origin <span class="sc">&gt;</span> stock_2020_origin_to_destination <span class="sc">&amp;</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>        stock_2020_origin_to_destination <span class="sc">&lt;</span> stock_2020_destination_to_origin <span class="sc">*</span> <span class="fl">0.9</span> <span class="sc">~</span> <span class="st">"More emigrants from the US"</span>,</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pmin</span>(stock_2020_origin_to_destination, stock_2020_destination_to_origin) <span class="sc">/</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pmax</span>(stock_2020_origin_to_destination, stock_2020_destination_to_origin) <span class="sc">&gt;=</span> <span class="fl">0.90</span> <span class="sc">~</span> <span class="st">"About the same"</span>,</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>      stock_2020_origin_to_destination <span class="sc">&gt;</span> stock_2020_destination_to_origin <span class="sc">&amp;</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>        stock_2020_destination_to_origin <span class="sc">&lt;</span> stock_2020_origin_to_destination <span class="sc">*</span> <span class="fl">0.9</span> <span class="sc">~</span> <span class="st">"More immigrants from the US"</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">stock_2020_category_four =</span> <span class="fu">case_when</span>(</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>      stock_2020_origin_to_destination <span class="sc">&gt;</span> stock_2020_destination_to_origin <span class="sc">&amp;</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>        stock_2020_destination_to_origin <span class="sc">&lt;</span> stock_2020_origin_to_destination <span class="sc">*</span> <span class="fl">0.9</span> <span class="sc">&amp;</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>        stock_2020_destination_to_origin <span class="sc">&gt;=</span> stock_2020_origin_to_destination <span class="sc">*</span> <span class="fl">0.1</span> <span class="sc">~</span> <span class="st">"More immigrants to the US"</span>,</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>      stock_2020_origin_to_destination <span class="sc">&gt;</span> stock_2020_destination_to_origin <span class="sc">&amp;</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>        stock_2020_destination_to_origin <span class="sc">&lt;</span> stock_2020_origin_to_destination <span class="sc">*</span> <span class="fl">0.1</span> <span class="sc">~</span> <span class="st">"Many more immigrants to the US"</span>,</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pmin</span>(stock_2020_origin_to_destination, stock_2020_destination_to_origin) <span class="sc">/</span></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>        <span class="fu">pmax</span>(stock_2020_origin_to_destination, stock_2020_destination_to_origin) <span class="sc">&gt;=</span> <span class="fl">0.90</span> <span class="sc">~</span> <span class="st">"About the same"</span>,</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>      stock_2020_destination_to_origin <span class="sc">&gt;</span> stock_2020_origin_to_destination <span class="sc">&amp;</span></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>        stock_2020_origin_to_destination <span class="sc">&lt;</span> stock_2020_destination_to_origin <span class="sc">*</span> <span class="fl">0.9</span> <span class="sc">~</span> <span class="st">"More emigrants from the US"</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">avg_ratio_stock_category =</span> <span class="fu">case_when</span>(</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(avg_ratio_stock) <span class="sc">~</span> <span class="cn">NA</span>,</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>    avg_ratio_stock <span class="sc">&lt;</span> p5 <span class="sc">~</span> <span class="st">"Below 5th percentile"</span>,</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>    avg_ratio_stock <span class="sc">&gt;=</span> p5 <span class="sc">&amp;</span> avg_ratio_stock <span class="sc">&lt;</span> p50 <span class="sc">~</span> <span class="st">"Between 5th percentile and median"</span>,</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>    avg_ratio_stock <span class="sc">&gt;=</span> p50 <span class="sc">&amp;</span> avg_ratio_stock <span class="sc">&lt;</span> p90 <span class="sc">~</span> <span class="st">"Between median and 90th percentile"</span>,</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Above 90th percentile"</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="checks" class="level3">
+<h3 class="anchored" data-anchor-id="checks">Checks</h3>
+<section id="starts-with-avg" class="level4">
+<h4 class="anchored" data-anchor-id="starts-with-avg">Starts with <code>avg</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Hmisc<span class="sc">::</span><span class="fu">describe</span>(data <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"avg"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>data %&gt;% select(starts_with("avg")) 
+
+ 4  Variables      165  Observations
+--------------------------------------------------------------------------------
+avg_diff_stock 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+     116       49      116        1   335572   529786     4736     7430 
+     .25      .50      .75      .90      .95 
+   24642    62334   248912   713098  1310942 
+
+lowest : -13057.3 -5309.67 -906     582.667  1526.33 
+highest: 1575030  1926080  2242810  2263990  10798400
+--------------------------------------------------------------------------------
+avg_ratio_stock 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+     116       49      116        1    108.3    177.1    1.468    2.532 
+     .25      .50      .75      .90      .95 
+   5.873   22.745   61.537  172.319  302.295 
+
+lowest : 0.755678 0.871861 0.925137 1.04486  1.23342 
+highest: 429.964  434.22   664.935  804.18   5209.41 
+--------------------------------------------------------------------------------
+avg_net_pos 
+       n  missing distinct     Info      Sum     Mean      Gmd 
+     116       49        2    0.076      113   0.9741  0.05082 
+
+--------------------------------------------------------------------------------
+avg_ratio_stock_category 
+       n  missing distinct 
+     116       49        4 
+
+Above 90th percentile (12, 0.103), Below 5th percentile (6, 0.052), Between 5th
+percentile and median (52, 0.448), Between median and 90th percentile (46,
+0.397)
+--------------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+<p>n = 116, missing 49–looks good.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>avg_net_pos, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+   0    1 &lt;NA&gt; 
+   3  113   49 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(avg_net_pos <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    region_development_group_country_or_area_of_destination_destination_to_origin,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    avg_diff_stock,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    avg_ratio_stock,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    avg_ratio_stock</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+  region_development_group_country_or_area_of_d…¹ avg_diff_stock avg_ratio_stock
+  &lt;chr&gt;                                                    &lt;dbl&gt;           &lt;dbl&gt;
+1 United Arab Emirates                                     -906            0.925
+2 Australia*                                             -13057.           0.872
+3 Micronesia                                              -5310.           0.756
+# ℹ abbreviated name:
+#   ¹​region_development_group_country_or_area_of_destination_destination_to_origin</code></pre>
+</div>
+</div>
+</section>
+<section id="stock_2020_net_pos" class="level4">
+<h4 class="anchored" data-anchor-id="stock_2020_net_pos"><code>stock_2020_net_pos</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>stock_2020_net_pos, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+   0    1 &lt;NA&gt; 
+   3  113   49 </code></pre>
+</div>
+</div>
+<p>49 NA makes sense.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stock_2020_net_pos <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Norway*"    "Australia*" "Micronesia"</code></pre>
+</div>
+</div>
+<p>Makese sense.</p>
+</section>
+<section id="diff_balance" class="level4">
+<h4 class="anchored" data-anchor-id="diff_balance"><code>diff_balance</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>diff_balance, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Always more emigrants from the US  Always more immigrants to the US 
+                                2                               111 
+           Balance varies by year                              &lt;NA&gt; 
+                                3                                49 </code></pre>
+</div>
+</div>
+<p>Missing 49–looks good.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diff_balance <span class="sc">==</span> <span class="st">"Always more emigrants from the US"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 1
+  region_development_group_country_or_area_of_destination_destination_to_origin
+  &lt;chr&gt;                                                                        
+1 Australia*                                                                   
+2 Micronesia                                                                   </code></pre>
+</div>
+</div>
+<p>Makes sense.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diff_balance <span class="sc">==</span> <span class="st">"Balance varies by year"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 1
+  region_development_group_country_or_area_of_destination_destination_to_origin
+  &lt;chr&gt;                                                                        
+1 Libya                                                                        
+2 United Arab Emirates                                                         
+3 Norway*                                                                      </code></pre>
+</div>
+</div>
+<p>Makes sense.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(diff_balance <span class="sc">==</span> <span class="st">"Not available"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    region_development_group_country_or_area_of_destination_destination_to_origin,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">starts_with</span>(<span class="st">"diff_stock"</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 4
+# ℹ 4 variables:
+#   region_development_group_country_or_area_of_destination_destination_to_origin &lt;chr&gt;,
+#   diff_stock_2010 &lt;dbl&gt;, diff_stock_2015 &lt;dbl&gt;, diff_stock_2020 &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="stock_2020_category_three" class="level4">
+<h4 class="anchored" data-anchor-id="stock_2020_category_three"><code>stock_2020_category_three</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>stock_2020_category_three, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+             About the same  More emigrants from the US 
+                          2                           1 
+More immigrants from the US                        &lt;NA&gt; 
+                        113                          49 </code></pre>
+</div>
+</div>
+<p>Missing 49–looks good.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stock_2020_category_three <span class="sc">==</span> <span class="st">"More emigrants from the US"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Australia*"</code></pre>
+</div>
+</div>
+<p>Makes sense.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stock_2020_category_three <span class="sc">==</span> <span class="st">"About the same"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Norway*"    "Micronesia"</code></pre>
+</div>
+</div>
+<p>Makes sense.</p>
+</section>
+<section id="stock_2020_category_four" class="level4">
+<h4 class="anchored" data-anchor-id="stock_2020_category_four"><code>stock_2020_category_four</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>stock_2020_category_four, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+                About the same Many more immigrants to the US 
+                             2                             75 
+    More emigrants from the US      More immigrants to the US 
+                             1                             38 
+                          &lt;NA&gt; 
+                            49 </code></pre>
+</div>
+</div>
+<p>Missing 49–looks good.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stock_2020_category_four <span class="sc">==</span> <span class="st">"More emigrants from the US"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Australia*"</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stock_2020_category_four <span class="sc">==</span> <span class="st">"About the same"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Norway*"    "Micronesia"</code></pre>
+</div>
+</div>
+</section>
+<section id="avg_ratio_stock_category" class="level4">
+<h4 class="anchored" data-anchor-id="avg_ratio_stock_category"><code>avg_ratio_stock_category</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(data<span class="sc">$</span>avg_ratio_stock_category, <span class="at">useNA =</span> <span class="st">"always"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+             Above 90th percentile               Below 5th percentile 
+                                12                                  6 
+ Between 5th percentile and median Between median and 90th percentile 
+                                52                                 46 
+                              &lt;NA&gt; 
+                                49 </code></pre>
+</div>
+</div>
+<p>Missing 49–looks good.</p>
+</section>
+</section>
+</section>
+<section id="cleaning-country-names" class="level2">
+<h2 class="anchored" data-anchor-id="cleaning-country-names">Cleaning country names</h2>
+<section id="remove-at-the-end" class="level3">
+<h3 class="anchored" data-anchor-id="remove-at-the-end">Remove * at the end</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">region_development_group_country_or_area_of_destination_destination_to_origin =</span> <span class="fu">str_replace</span>(</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    region_development_group_country_or_area_of_destination_destination_to_origin,</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"</span><span class="sc">\\</span><span class="st">*$"</span>,  <span class="co"># Regular expression to match a trailing asterisk</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">""</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="remove-countries-that-are-not-in-world_map" class="level2">
+<h2 class="anchored" data-anchor-id="remove-countries-that-are-not-in-world_map">Remove countries that are not in <code>world_map</code></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>countries_not_in_world_map <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Eswatini"</span>,</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Cabo Verde"</span>,</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"China, Hong Kong SAR"</span>,</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Tuvalu"</span>,</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Melanesia"</span>,</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># world_map has Micronesia, but I looked at each state in subregion and they're in the</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Federated States of Micronesia</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the UN data has both Micronesia and Micronesia (Fed. States of)</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Micronesia"</span>,</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Polynesia"</span></span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">length</span>(countries_not_in_world_map))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 7</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">%in%</span> countries_not_in_world_map</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="check-for-number-of-countries-1" class="level2">
+<h2 class="anchored" data-anchor-id="check-for-number-of-countries-1">Check for number of countries</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span> </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Mauritius"                          "Uganda"                            
+  [3] "United Republic of Tanzania"        "Zambia"                            
+  [5] "Cameroon"                           "Central African Republic"          
+  [7] "Congo"                              "Gabon"                             
+  [9] "Algeria"                            "Egypt"                             
+ [11] "Libya"                              "Morocco"                           
+ [13] "Tunisia"                            "Botswana"                          
+ [15] "Lesotho"                            "Namibia"                           
+ [17] "South Africa"                       "Ghana"                             
+ [19] "Guinea"                             "Guinea-Bissau"                     
+ [21] "Liberia"                            "Mali"                              
+ [23] "Mauritania"                         "Senegal"                           
+ [25] "Sierra Leone"                       "Togo"                              
+ [27] "Tajikistan"                         "China"                             
+ [29] "Dem. People's Republic of Korea"    "Japan"                             
+ [31] "Mongolia"                           "Republic of Korea"                 
+ [33] "Brunei Darussalam"                  "Cambodia"                          
+ [35] "Indonesia"                          "Philippines"                       
+ [37] "Singapore"                          "Thailand"                          
+ [39] "Timor-Leste"                        "Viet Nam"                          
+ [41] "Bangladesh"                         "Bhutan"                            
+ [43] "India"                              "Maldives"                          
+ [45] "Sri Lanka"                          "Bahrain"                           
+ [47] "Cyprus"                             "Georgia"                           
+ [49] "Israel"                             "Jordan"                            
+ [51] "Kuwait"                             "Lebanon"                           
+ [53] "Qatar"                              "State of Palestine"                
+ [55] "Turkey"                             "United Arab Emirates"              
+ [57] "Belarus"                            "Bulgaria"                          
+ [59] "Czechia"                            "Hungary"                           
+ [61] "Poland"                             "Romania"                           
+ [63] "Russian Federation"                 "Slovakia"                          
+ [65] "Ukraine"                            "Denmark"                           
+ [67] "Estonia"                            "Faroe Islands"                     
+ [69] "Finland"                            "Iceland"                           
+ [71] "Ireland"                            "Isle of Man"                       
+ [73] "Latvia"                             "Lithuania"                         
+ [75] "Norway"                             "Sweden"                            
+ [77] "United Kingdom"                     "Albania"                           
+ [79] "Andorra"                            "Croatia"                           
+ [81] "Greece"                             "Italy"                             
+ [83] "Malta"                              "Montenegro"                        
+ [85] "Portugal"                           "Serbia"                            
+ [87] "Slovenia"                           "Spain"                             
+ [89] "Austria"                            "Belgium"                           
+ [91] "France"                             "Germany"                           
+ [93] "Liechtenstein"                      "Luxembourg"                        
+ [95] "Netherlands"                        "Switzerland"                       
+ [97] "Anguilla"                           "Antigua and Barbuda"               
+ [99] "Aruba"                              "Bahamas"                           
+[101] "Barbados"                           "Bonaire, Sint Eustatius and Saba"  
+[103] "British Virgin Islands"             "Cayman Islands"                    
+[105] "Cuba"                               "Curaçao"                           
+[107] "Dominica"                           "Dominican Republic"                
+[109] "Guadeloupe"                         "Haiti"                             
+[111] "Jamaica"                            "Montserrat"                        
+[113] "Puerto Rico"                        "Saint Lucia"                       
+[115] "Saint Vincent and the Grenadines"   "Sint Maarten (Dutch part)"         
+[117] "Trinidad and Tobago"                "Turks and Caicos Islands"          
+[119] "United States Virgin Islands"       "Belize"                            
+[121] "Costa Rica"                         "El Salvador"                       
+[123] "Guatemala"                          "Honduras"                          
+[125] "Mexico"                             "Nicaragua"                         
+[127] "Panama"                             "Argentina"                         
+[129] "Bolivia (Plurinational State of)"   "Brazil"                            
+[131] "Chile"                              "Colombia"                          
+[133] "Ecuador"                            "Falkland Islands (Malvinas)"       
+[135] "Guyana"                             "Paraguay"                          
+[137] "Peru"                               "Uruguay"                           
+[139] "Venezuela (Bolivarian Republic of)" "Bermuda"                           
+[141] "Canada"                             "Greenland"                         
+[143] "Saint Pierre and Miquelon"          "Australia"                         
+[145] "New Zealand"                        "Papua New Guinea"                  
+[147] "Solomon Islands"                    "Guam"                              
+[149] "Kiribati"                           "Marshall Islands"                  
+[151] "Micronesia (Fed. States of)"        "Northern Mariana Islands"          
+[153] "Palau"                              "American Samoa"                    
+[155] "Cook Islands"                       "French Polynesia"                  
+[157] "Niue"                               "Samoa"                             </code></pre>
+</div>
+</div>
+<p>We’re down to 158 (165 [countries where there are Americans] - 7 [countries not in world map])</p>
+</section>
+<section id="check-for-number-of-countries-accounting-for-missing-values-1" class="level2">
+<h2 class="anchored" data-anchor-id="check-for-number-of-countries-accounting-for-missing-values-1">Check for number of countries accounting for missing values</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">if_any</span>(<span class="fu">contains</span>(<span class="st">"stock"</span>), is.na)) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region_development_group_country_or_area_of_destination_destination_to_origin) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Uganda"                             "United Republic of Tanzania"       
+  [3] "Zambia"                             "Cameroon"                          
+  [5] "Algeria"                            "Egypt"                             
+  [7] "Libya"                              "Morocco"                           
+  [9] "Tunisia"                            "South Africa"                      
+ [11] "Ghana"                              "Guinea"                            
+ [13] "Liberia"                            "Senegal"                           
+ [15] "Sierra Leone"                       "Tajikistan"                        
+ [17] "China"                              "Japan"                             
+ [19] "Republic of Korea"                  "Cambodia"                          
+ [21] "Indonesia"                          "Philippines"                       
+ [23] "Singapore"                          "Thailand"                          
+ [25] "Viet Nam"                           "Bangladesh"                        
+ [27] "India"                              "Sri Lanka"                         
+ [29] "Cyprus"                             "Georgia"                           
+ [31] "Israel"                             "Jordan"                            
+ [33] "Kuwait"                             "Lebanon"                           
+ [35] "State of Palestine"                 "Turkey"                            
+ [37] "United Arab Emirates"               "Belarus"                           
+ [39] "Bulgaria"                           "Czechia"                           
+ [41] "Hungary"                            "Poland"                            
+ [43] "Romania"                            "Russian Federation"                
+ [45] "Ukraine"                            "Denmark"                           
+ [47] "Estonia"                            "Finland"                           
+ [49] "Iceland"                            "Ireland"                           
+ [51] "Latvia"                             "Lithuania"                         
+ [53] "Norway"                             "Sweden"                            
+ [55] "United Kingdom"                     "Albania"                           
+ [57] "Croatia"                            "Greece"                            
+ [59] "Italy"                              "Malta"                             
+ [61] "Portugal"                           "Serbia"                            
+ [63] "Slovenia"                           "Spain"                             
+ [65] "Austria"                            "Belgium"                           
+ [67] "France"                             "Germany"                           
+ [69] "Luxembourg"                         "Netherlands"                       
+ [71] "Switzerland"                        "Antigua and Barbuda"               
+ [73] "Aruba"                              "Bahamas"                           
+ [75] "Barbados"                           "Cuba"                              
+ [77] "Dominica"                           "Dominican Republic"                
+ [79] "Haiti"                              "Jamaica"                           
+ [81] "Montserrat"                         "Puerto Rico"                       
+ [83] "Saint Lucia"                        "Saint Vincent and the Grenadines"  
+ [85] "Trinidad and Tobago"                "Belize"                            
+ [87] "Costa Rica"                         "El Salvador"                       
+ [89] "Guatemala"                          "Honduras"                          
+ [91] "Mexico"                             "Nicaragua"                         
+ [93] "Panama"                             "Argentina"                         
+ [95] "Bolivia (Plurinational State of)"   "Brazil"                            
+ [97] "Chile"                              "Colombia"                          
+ [99] "Ecuador"                            "Guyana"                            
+[101] "Paraguay"                           "Peru"                              
+[103] "Uruguay"                            "Venezuela (Bolivarian Republic of)"
+[105] "Bermuda"                            "Canada"                            
+[107] "Australia"                          "New Zealand"                       
+[109] "Marshall Islands"                   "Micronesia (Fed. States of)"       
+[111] "Samoa"                             </code></pre>
+</div>
+</div>
+<p>116 - 7 = 109. However, it’s 111 because Eswatini and Tuvalu, which are in <code>countries_not_in_world_map</code>, were not in the list of countries account for missing values. That’s why it’s 111.</p>
+<section id="adjust-to-world_map-spellings" class="level3">
+<h3 class="anchored" data-anchor-id="adjust-to-world_map-spellings">Adjust to <code>world_map</code> spellings</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">region_development_group_country_or_area_of_destination_destination_to_origin =</span> <span class="fu">case_when</span>(</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"United Republic of Tanzania"</span> <span class="sc">~</span> <span class="st">"Tanzania"</span>,</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Dem. People's Republic of Korea"</span> <span class="sc">~</span> <span class="st">"North Korea"</span>,</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Brunei Darussalam"</span> <span class="sc">~</span> <span class="st">"Brunei"</span>,</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"State of Palestine"</span> <span class="sc">~</span> <span class="st">"Palestine"</span>,</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Russian Federation"</span> <span class="sc">~</span> <span class="st">"Russia"</span>,</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Viet Nam"</span> <span class="sc">~</span> <span class="st">"Vietnam"</span>,</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"United Kingdom"</span> <span class="sc">~</span> <span class="st">"UK"</span>,</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Curaçao"</span> <span class="sc">~</span> <span class="st">"Curacao"</span>,</span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Sint Maarten (Dutch part)"</span> <span class="sc">~</span> <span class="st">"Sint Maarten"</span>,</span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Bolivia (Plurinational State of)"</span> <span class="sc">~</span> <span class="st">"Bolivia"</span>,</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Republic of Korea"</span> <span class="sc">~</span> <span class="st">"South Korea"</span>,</span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Czechia"</span> <span class="sc">~</span> <span class="st">"Czech Republic"</span>,</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Falkland Islands (Malvinas)"</span> <span class="sc">~</span> <span class="st">"Falkland Islands"</span>,</span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Venezuela (Bolivarian Republic of)"</span> <span class="sc">~</span> <span class="st">"Venezuela"</span>,</span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>      region_development_group_country_or_area_of_destination_destination_to_origin <span class="sc">==</span> <span class="st">"Micronesia (Fed. States of)"</span> <span class="sc">~</span> <span class="st">"Micronesia"</span>,</span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Retain original value if no match</span></span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> region_development_group_country_or_area_of_destination_destination_to_origin</span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb53-22"><a href="#cb53-22" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="getting-map-data-from-maps" class="level1">
+<h1>Getting map data from <code>maps</code></h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Code from Christina</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>world_map <span class="ot">&lt;-</span> <span class="fu">map_data</span>(<span class="st">"world"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(order <span class="sc">&lt;=</span> <span class="dv">81210</span> <span class="sc">|</span> order <span class="sc">&gt;=</span> <span class="dv">81533</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span>region <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Antarctica"</span>, <span class="st">"French Southern and Antarctic Lands"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="checking-data-types" class="level2">
+<h2 class="anchored" data-anchor-id="checking-data-types">Checking data types</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(world_map)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   94239 obs. of  6 variables:
+ $ long     : num  -69.9 -69.9 -69.9 -70 -70.1 ...
+ $ lat      : num  12.5 12.4 12.4 12.5 12.5 ...
+ $ group    : num  1 1 1 1 1 1 1 1 1 1 ...
+ $ order    : int  1 2 3 4 5 6 7 8 9 10 ...
+ $ region   : chr  "Aruba" "Aruba" "Aruba" "Aruba" ...
+ $ subregion: chr  NA NA NA NA ...</code></pre>
+</div>
+</div>
+</section>
+<section id="cleaning-region-and-subregion-columns" class="level2">
+<h2 class="anchored" data-anchor-id="cleaning-region-and-subregion-columns">Cleaning region and subregion columns</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>world_map <span class="ot">&lt;-</span> world_map <span class="sc">%&gt;%</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Replace multiple spaces with a single space</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">region =</span> <span class="fu">str_replace_all</span>(region, <span class="st">"</span><span class="sc">\\</span><span class="st">s+"</span>, <span class="st">" "</span>),</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Trim any leading or trailing spaces</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">region =</span> <span class="fu">str_trim</span>(region),</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">subregion =</span> <span class="fu">str_replace_all</span>(subregion, <span class="st">"</span><span class="sc">\\</span><span class="st">s+"</span>, <span class="st">" "</span>),</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">subregion =</span> <span class="fu">str_trim</span>(subregion) </span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="adjusting-to-data-spellings" class="level2">
+<h2 class="anchored" data-anchor-id="adjusting-to-data-spellings">Adjusting to <code>data</code> spellings</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>world_map <span class="ot">&lt;-</span> world_map <span class="sc">%&gt;%</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">region =</span> <span class="fu">case_when</span>(</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Democratic Republic of the Congo"</span> <span class="sc">~</span> <span class="st">"Congo"</span>,</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Republic of Congo"</span> <span class="sc">~</span> <span class="st">"Congo"</span>,</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Antigua"</span> <span class="sc">~</span> <span class="st">"Antigua and Barbuda"</span>,</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Barbuda"</span> <span class="sc">~</span> <span class="st">"Antigua and Barbuda"</span>,</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Virgin Islands"</span> <span class="sc">&amp;</span> subregion <span class="sc">==</span> <span class="st">"British"</span> <span class="sc">~</span> <span class="st">"British Virgin Islands"</span>,</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Virgin Islands"</span> <span class="sc">&amp;</span> subregion <span class="sc">==</span> <span class="st">"US"</span> <span class="sc">~</span> <span class="st">"United States Virgin Islands"</span>,</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Bonaire"</span> <span class="sc">~</span> <span class="st">"Bonaire, Sint Eustatius and Saba"</span>,</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Sint Eustatius"</span> <span class="sc">~</span> <span class="st">"Bonaire, Sint Eustatius and Saba"</span>,</span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Saba"</span> <span class="sc">~</span> <span class="st">"Bonaire, Sint Eustatius and Saba"</span>,</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Saint Vincent"</span> <span class="sc">~</span> <span class="st">"Saint Vincent and the Grenadines"</span>,</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Grenadines"</span> <span class="sc">~</span> <span class="st">"Saint Vincent and the Grenadines"</span>,</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Trinidad"</span> <span class="sc">~</span> <span class="st">"Trinidad and Tobago"</span>,</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>      region <span class="sc">==</span> <span class="st">"Tobago"</span> <span class="sc">~</span> <span class="st">"Trinidad and Tobago"</span>,</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Retain original value if no match</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> region</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="seeing-where-countries-in-both-datasets-dont-match" class="level1">
+<h1>Seeing where countries in both datasets don’t match</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>data_col_values <span class="ot">&lt;-</span> <span class="fu">unique</span>(data<span class="sc">$</span>region_development_group_country_or_area_of_destination_destination_to_origin)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>world_map_col_values <span class="ot">&lt;-</span> <span class="fu">unique</span>(world_map<span class="sc">$</span>region)</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>data_not_in_world_map <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(data_col_values, world_map_col_values)</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>world_map_not_in_data <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(world_map_col_values, data_col_values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>data_not_in_world_map</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>character(0)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>world_map_not_in_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Afghanistan"            "Angola"                 "Armenia"               
+ [4] "Azerbaijan"             "Burundi"                "Benin"                 
+ [7] "Burkina Faso"           "Bosnia and Herzegovina" "Saint Barthelemy"      
+[10] "Ivory Coast"            "Comoros"                "Cape Verde"            
+[13] "Djibouti"               "Eritrea"                "Canary Islands"        
+[16] "Ethiopia"               "Fiji"                   "Reunion"               
+[19] "Mayotte"                "French Guiana"          "Martinique"            
+[22] "Guernsey"               "Gambia"                 "Equatorial Guinea"     
+[25] "Grenada"                "Heard Island"           "Cocos Islands"         
+[28] "Christmas Island"       "Chagos Archipelago"     "Iran"                  
+[31] "Iraq"                   "San Marino"             "Jersey"                
+[34] "Siachen Glacier"        "Kazakhstan"             "Kenya"                 
+[37] "Kyrgyzstan"             "Nevis"                  "Saint Kitts"           
+[40] "Kosovo"                 "Laos"                   "Saint Martin"          
+[43] "Monaco"                 "Moldova"                "Madagascar"            
+[46] "North Macedonia"        "Myanmar"                "Mozambique"            
+[49] "Malawi"                 "Malaysia"               "New Caledonia"         
+[52] "Niger"                  "Norfolk Island"         "Nigeria"               
+[55] "Nepal"                  "Nauru"                  "Oman"                  
+[58] "Pakistan"               "Pitcairn Islands"       "Madeira Islands"       
+[61] "Azores"                 "Rwanda"                 "Western Sahara"        
+[64] "Saudi Arabia"           "Sudan"                  "South Sudan"           
+[67] "South Sandwich Islands" "South Georgia"          "Saint Helena"          
+[70] "Ascension Island"       "Somalia"                "Sao Tome and Principe" 
+[73] "Suriname"               "Swaziland"              "Seychelles"            
+[76] "Syria"                  "Chad"                   "Turkmenistan"          
+[79] "Tonga"                  "Taiwan"                 "USA"                   
+[82] "Uzbekistan"             "Vatican"                "Vanuatu"               
+[85] "Wallis and Futuna"      "Yemen"                  "Zimbabwe"              </code></pre>
+</div>
+</div>
+<p>It’s probably ok to leave these–they’ll just be NA.</p>
+</section>
+<section id="merge-datasets" class="level1">
+<h1>Merge datasets</h1>
+<section id="checks-1" class="level2">
+<h2 class="anchored" data-anchor-id="checks-1">Checks</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 158  23</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(data<span class="sc">$</span>index_destination_to_origin))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 158</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(data, <span class="fu">is.na</span>(region_development_group_country_or_area_of_destination_destination_to_origin))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 23
+# ℹ 23 variables: index_destination_to_origin &lt;dbl&gt;,
+#   region_development_group_country_or_area_of_destination_destination_to_origin &lt;chr&gt;,
+#   location_code_of_destination &lt;dbl&gt;, stock_2010_destination_to_origin &lt;dbl&gt;,
+#   stock_2010_origin_to_destination &lt;dbl&gt;, diff_stock_2010 &lt;dbl&gt;,
+#   ratio_stock_2010 &lt;dbl&gt;, stock_2015_destination_to_origin &lt;dbl&gt;,
+#   stock_2015_origin_to_destination &lt;dbl&gt;, diff_stock_2015 &lt;dbl&gt;,
+#   ratio_stock_2015 &lt;dbl&gt;, stock_2020_destination_to_origin &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>region in world_map has duplicates. That’s ok.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(world_map, <span class="fu">is.na</span>(region))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] long      lat       group     order     region    subregion
+&lt;0 rows&gt; (or 0-length row.names)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>    world_map,</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"region_development_group_country_or_area_of_destination_destination_to_origin"</span> <span class="ot">=</span> <span class="st">"region"</span></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 0 × 23
+# ℹ 23 variables: index_destination_to_origin &lt;dbl&gt;,
+#   region_development_group_country_or_area_of_destination_destination_to_origin &lt;chr&gt;,
+#   location_code_of_destination &lt;dbl&gt;, stock_2010_destination_to_origin &lt;dbl&gt;,
+#   stock_2010_origin_to_destination &lt;dbl&gt;, diff_stock_2010 &lt;dbl&gt;,
+#   ratio_stock_2010 &lt;dbl&gt;, stock_2015_destination_to_origin &lt;dbl&gt;,
+#   stock_2015_origin_to_destination &lt;dbl&gt;, diff_stock_2015 &lt;dbl&gt;,
+#   ratio_stock_2015 &lt;dbl&gt;, stock_2020_destination_to_origin &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="merge" class="level2">
+<h2 class="anchored" data-anchor-id="merge">Merge</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>merged_data <span class="ot">&lt;-</span> world_map <span class="sc">%&gt;%</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"region"</span> <span class="ot">=</span> <span class="st">"region_development_group_country_or_area_of_destination_destination_to_origin"</span></span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="checks-2" class="level3">
+<h3 class="anchored" data-anchor-id="checks-2">Checks</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(world_map)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 94239</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(merged_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 94239</code></pre>
+</div>
+</div>
+<p>Good–the same.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(merged_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                            long                              lat 
+                               0                                0 
+                           group                            order 
+                               0                                0 
+                          region                        subregion 
+                               0                            60292 
+     index_destination_to_origin     location_code_of_destination 
+                           21116                            21116 
+stock_2010_destination_to_origin stock_2010_origin_to_destination 
+                           21143                            30125 
+                 diff_stock_2010                 ratio_stock_2010 
+                           30125                            30125 
+stock_2015_destination_to_origin stock_2015_origin_to_destination 
+                           21143                            30125 
+                 diff_stock_2015                 ratio_stock_2015 
+                           30125                            30125 
+stock_2020_destination_to_origin stock_2020_origin_to_destination 
+                           21143                            30125 
+                 diff_stock_2020                 ratio_stock_2020 
+                           30125                            30125 
+                  avg_diff_stock                  avg_ratio_stock 
+                           30125                            30125 
+                     avg_net_pos               stock_2020_net_pos 
+                           30125                            30125 
+                    diff_balance        stock_2020_category_three 
+                           30125                            30125 
+        stock_2020_category_four         avg_ratio_stock_category 
+                           30125                            30125 </code></pre>
+</div>
+</div>
+<p>Makes sense overall.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>merged_data <span class="sc">%&gt;%</span> </span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(avg_net_pos)) <span class="sc">%&gt;%</span> </span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(region) <span class="sc">%&gt;%</span> </span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "Aruba"                            "Albania"                         
+  [3] "Finland"                          "United Arab Emirates"            
+  [5] "Argentina"                        "Australia"                       
+  [7] "Antigua and Barbuda"              "Austria"                         
+  [9] "Belgium"                          "Bangladesh"                      
+ [11] "Bulgaria"                         "Bahamas"                         
+ [13] "Belarus"                          "Belize"                          
+ [15] "Bermuda"                          "Bolivia"                         
+ [17] "Brazil"                           "Barbados"                        
+ [19] "Canada"                           "Switzerland"                     
+ [21] "Chile"                            "China"                           
+ [23] "Cameroon"                         "Colombia"                        
+ [25] "Costa Rica"                       "Cuba"                            
+ [27] "Cyprus"                           "Czech Republic"                  
+ [29] "Germany"                          "Dominica"                        
+ [31] "Denmark"                          "Dominican Republic"              
+ [33] "Algeria"                          "Ecuador"                         
+ [35] "Egypt"                            "Spain"                           
+ [37] "Estonia"                          "France"                          
+ [39] "Micronesia"                       "UK"                              
+ [41] "Georgia"                          "Ghana"                           
+ [43] "Guinea"                           "Greece"                          
+ [45] "Guatemala"                        "Guyana"                          
+ [47] "Honduras"                         "Croatia"                         
+ [49] "Haiti"                            "Hungary"                         
+ [51] "Indonesia"                        "India"                           
+ [53] "Ireland"                          "Iceland"                         
+ [55] "Israel"                           "Italy"                           
+ [57] "Jamaica"                          "Jordan"                          
+ [59] "Japan"                            "Cambodia"                        
+ [61] "South Korea"                      "Kuwait"                          
+ [63] "Lebanon"                          "Liberia"                         
+ [65] "Libya"                            "Saint Lucia"                     
+ [67] "Sri Lanka"                        "Lithuania"                       
+ [69] "Luxembourg"                       "Latvia"                          
+ [71] "Morocco"                          "Mexico"                          
+ [73] "Marshall Islands"                 "Malta"                           
+ [75] "Montserrat"                       "Nicaragua"                       
+ [77] "Netherlands"                      "Norway"                          
+ [79] "New Zealand"                      "Panama"                          
+ [81] "Peru"                             "Philippines"                     
+ [83] "Poland"                           "Puerto Rico"                     
+ [85] "Portugal"                         "Paraguay"                        
+ [87] "Palestine"                        "Romania"                         
+ [89] "Russia"                           "Senegal"                         
+ [91] "Singapore"                        "Sierra Leone"                    
+ [93] "El Salvador"                      "Serbia"                          
+ [95] "Slovenia"                         "Sweden"                          
+ [97] "Thailand"                         "Tajikistan"                      
+ [99] "Trinidad and Tobago"              "Tunisia"                         
+[101] "Turkey"                           "Tanzania"                        
+[103] "Uganda"                           "Ukraine"                         
+[105] "Uruguay"                          "Saint Vincent and the Grenadines"
+[107] "Venezuela"                        "Vietnam"                         
+[109] "Samoa"                            "South Africa"                    
+[111] "Zambia"                          </code></pre>
+</div>
+</div>
+<p>111–looks good.</p>
+</section>
+</section>
+</section>
+<section id="saving-the-clean-data" class="level1">
+<h1>Saving the clean data</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(merged_data, <span class="st">"../data/un_migrant_stock/processed/merged_with_world_map.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
